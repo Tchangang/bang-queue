@@ -380,7 +380,7 @@ const serialQueue = function(mongoUri,queueName){
 						if(err){
 							reject(err)
 						}
-						resolve(lastSeen)
+						resolve({delay:lastSeen-new Date().getTime(),dateTime:lastSeen})
 					})
 				})	
 			}else{
