@@ -86,6 +86,7 @@ const Bang = function(mongoUri,queueName,params){
 
 	this.setCompleteJob = (_id,params)=>{
 		return new Promise((resolve, reject) => {
+			console.log('Params in setCompleteJob : '+_id+' - '+params)
 			if(_id){
 				this.cursor.jobs.findOne({_id:ObjectId(_id)},(err,result)=>{
 					if(err){
