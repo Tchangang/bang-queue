@@ -68,7 +68,7 @@ const Bang = function(mongoUri,queueName,params){
 						reject(new Error('Job not found'))
 					}
 					const jobFound = result
-					this.cursor.jobs.update({_id:ObjectId(_id)},{$set:{promotedAt:new Date().getTime()}},(err,result)=>{
+					this.cursor.jobs.update({_id:ObjectId(_id)},{$set:{promotedAt:new Date().getTime(),expireAt:new Date().getTime()+jobFound.timeout}},(err,result)=>{
 						if(err){
 							reject(err)
 						}
@@ -130,7 +130,6 @@ const Bang = function(mongoUri,queueName,params){
 
 	this.getNextJob = (type)=>{
 		return new Promise((resolve, reject) => {
-			//console.log({type:this.hashQueueName(type),expireAt:{$lt:new Date().getTime()},state:-1})
 			this.cursor.jobs.updateOne({type:this.hashQueueName(type),queueName:this.QUEUE_NAME_HASH,startAt:{$lt:new Date().getTime()},state:-1},{$set:{state:1}},{sort:{createdAt:1}},(err,result)=>{
 				if(err){
 					reject(err)
@@ -209,10 +208,11 @@ const Bang = function(mongoUri,queueName,params){
 		return new Promise((resolve, reject) => {
 			let toInsert = {type:this.hashQueueName(type),arguments:_arguments,typeText:type,queueName:this.QUEUE_NAME_HASH,createdAt:new Date(),state:-1,retry:0}
 			if(params.timeout){
-				toInsert.expireAt = new Date().getTime()+params.timeout
+				toInsert.expireAt = 99999999999
 				toInsert.timeout = params.timeout
 			}else{
-				toInsert.expireAt = new Date().getTime()+this.DEFAULT_TIMEOUT
+				toInsert.expireAt = 99999999999
+				toInsert.timeout = this.DEFAULT_TIMEOUT
 			}
 			if(params.delay){
 				toInsert.startAt = new Date().getTime()+params.delay
