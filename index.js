@@ -184,7 +184,7 @@ const Bang = function(mongoUri,queueName,params){
 						if(jobFound.timeout){
 							timeout = jobFound.timeout
 						}
-						this.cursor.jobs.update({_id:ObjectId(_id)},{$set:{statut:-1,timeout,expireAt:new Date().getTime()+timeout},$inc:{retry:1}},(err,result)=>{
+						this.cursor.jobs.update({_id:ObjectId(_id)},{$set:{state:-1,timeout,expireAt:new Date().getTime()+timeout},$inc:{retry:1}},(err,result)=>{
 							if(err){
 								reject(err)
 							}
