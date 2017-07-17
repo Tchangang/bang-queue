@@ -91,28 +91,32 @@ const Bang = function(mongoUri,queueName,params){
 					if(err){
 						reject(err)
 					}
+					console.log(result)
 					if(!result){
 						reject(new Error('Job not found'))
-					}
-					const jobFound = result
-					this.cursor.jobs.update({_id:ObjectId(_id)},({$set:{state:0,completedAt:new Date().getTime()}}),(err,result)=>{
-						if(err){
-							reject(err)
-						}
-						if(params && params.delete){
-							this.cursor.jobs.remove({_id:ObjectId(_id)},(err,result)=>{
+					}else{
+						const jobFound = result
+						if(jobFound){
+							this.cursor.jobs.update({_id:ObjectId(_id)},({$set:{state:0,completedAt:new Date().getTime()}}),(err,result)=>{
 								if(err){
 									reject(err)
+								}
+								if(params && params.delete){
+									this.cursor.jobs.remove({_id:ObjectId(_id)},(err,result)=>{
+										if(err){
+											reject(err)
+										}else{
+											this.eventList[jobFound.typeText].inProgress--
+											resolve({statut:1,deletedAt:new Date()})
+										}
+									})
 								}else{
 									this.eventList[jobFound.typeText].inProgress--
-									resolve({statut:1,deletedAt:new Date()})
+									resolve({statut:1,updatedAt:new Date()})
 								}
 							})
-						}else{
-							this.eventList[jobFound.typeText].inProgress--
-							resolve({statut:1,updatedAt:new Date()})
 						}
-					})
+					}
 				})
 			}else{
 				reject(new Error('Type message not defined'))
