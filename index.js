@@ -1,3 +1,8 @@
+let mongodb = require('mongodb')
+let ObjectId = mongodb.ObjectID
+
+const EventEmitter = require('events')
+
 const Bang = function(mongoUri,queueName){	
 	this.MONGO_URI = mongoUri
 	this.QUEUE_NAME = queueName
@@ -22,8 +27,8 @@ const Bang = function(mongoUri,queueName){
 	  		this.cursor.queues = database.collection('bang_queues')
 	  		this.cursor.jobs = database.collection('bang_jobs')
 	  		this.cursor.params = database.collection('bang_running')
-	  		// lancement de la 
-			this.emitter.emit('poll') 	
+	  		// lancement de la fonction de polling
+			this.emitter.emit('bang_poll') 	
 	  	}
 	})	
 
@@ -209,11 +214,11 @@ const Bang = function(mongoUri,queueName){
 	// ******************************************
 	this.nextPoll = ()=>{
 		setTimeout(()=>{
-			this.emitter.emit('poll')
+			this.emitter.emit('bang_poll')
 		}, this.REFRESH_DELAY)
 	}
 
-	this.emitter.on('poll',()=>{
+	this.emitter.on('bang_poll',()=>{
 		if(this.mongo){
 			let tabPromise = []
 			for(let key in this.eventList){

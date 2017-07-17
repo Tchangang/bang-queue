@@ -1,0 +1,28 @@
+{
+  "name": "bang-queue",
+  "version": "1.2.0",
+  "description": "Queue with MongoDB designed for Nodejs",
+  "main": "index.js",
+  "dependencies": {
+    "events": "^1.1.1",
+    "request": "^2.81.0",
+    "mongodb": "~2.2.10"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tchangang/bang-queue.git"
+  },
+  "keywords": [
+    "queue",
+    "mongodb"
+  ],
+  "author": "Tchangang Boris-Emmanuel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Tchangang/bang-queue/issues"
+  },
+  "homepage": "https://github.com/Tchangang/bang-queue#readme"
+}
