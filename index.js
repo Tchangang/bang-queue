@@ -23,7 +23,7 @@ const Bang = function(mongoUri,queueName,params){
 		if(params.DEFAULT_TIMEOUT)
 			this.DEFAULT_TIMEOUT = params.DEFAULT_TIMEOUT
 	}
-	
+
 	mongodb.MongoClient.connect(this.MONGO_URI, (err, database)=>{
 	  	if(err){
 	  		throw err
@@ -171,11 +171,46 @@ const Bang = function(mongoUri,queueName,params){
 		})
 	}
 
+	this.requeueJob = (_id)=>{
+		return new Promise((resolve, reject) => {
+			this.cursor.jobs.findOne({_id:ObjectId(_id)},(err,jobFound)=>{
+				if(err){
+					reject(err)
+				}
+				if(jobFound && jobFound.state != -1  && jobFound.state != -2){
+					// On va continuer
+					if(jobFound.retry<this.MAX_RETRY){
+						let timeout = this.DEFAULT_TIMEOUT
+						if(jobFound.timeout){
+							timeout = jobFound.timeout
+						}
+						this.cursor.jobs.update({_id:ObjectId(_id)},{$set:{statut:-1,timeout,expireAt:new Date().getTime()+timeout},$inc:{retry:1}},(err,result)=>{
+							if(err){
+								reject(err)
+							}
+							resolve(result)
+						})
+					}else{
+						this.cursor.jobs.update({_id:ObjectId(_id)},{$set:{state:-2}},(err,result)=>{
+							if(err){
+								reject(err)
+							}
+							resolve(result)
+						})
+					}
+				}else{
+					reject(new Error('Job not found'))
+				}
+			})
+		})
+	}
+
 	this.createJob = (type,_arguments,params)=>{
 		return new Promise((resolve, reject) => {
 			let toInsert = {type:this.hashQueueName(type),arguments:_arguments,typeText:type,queueName:this.QUEUE_NAME_HASH,createdAt:new Date(),state:-1,retry:0}
 			if(params.timeout){
 				toInsert.expireAt = new Date().getTime()+params.timeout
+				toInsert.timeout = params.timeout
 			}else{
 				toInsert.expireAt = new Date().getTime()+this.DEFAULT_TIMEOUT
 			}
@@ -206,17 +241,39 @@ const Bang = function(mongoUri,queueName,params){
 					this.eventList[eventType].inProgress++
 					this.setPromoteJob(data._id)
 					.then((result)=>{
-						callback(null,data)
+						const done = (error)=>{
+							return new Promise((resolve, reject) => {
+								if(error){
+									// Ici on va remettre le job dans la queue
+									this.requeueJob(data._id)
+									.then((result)=>{
+										resolve({statut:1,requeueAt:new Date().getTime()})
+									})
+									.catch((e)=>{
+										reject(e)
+									})
+								}else{
+									this.setCompleteJob(data._id)
+									.then((result)=>{
+										resolve({statut:1})
+									})
+									.catch((e)=>{
+										reject(e)
+									})
+								}	
+							})
+						}
+						callback(null,data,done)
 					})
 					.catch((e)=>{
-						callback(e,null)
+						callback(e,null,null)
 					})
 				}else{
-					callback(new Error('Queue busy for event '+eventType+' - '+this.eventList[eventType].inProgress,null))
+					callback(new Error('Queue busy for event '+eventType+' - '+this.eventList[eventType].inProgress,null,null))
 				}
 			})
 		}else{
-			callback(new Error('No type event found'),null)
+			callback(new Error('No type event found'),null,null)
 		}
 	}
 
