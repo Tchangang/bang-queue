@@ -16,12 +16,15 @@ const Bang = function(mongoUri,queueName,params){
 	this.cursor = null
 	this.DEFAULT_TIMEOUT = 30000
 	this.REFRESH_DELAY = 200
+	this.DEBUG = false
 
 	if(params){
 		if(params.REFRESH_DELAY)
 			this.REFRESH_DELAY = params.REFRESH_DELAY
 		if(params.DEFAULT_TIMEOUT)
 			this.DEFAULT_TIMEOUT = params.DEFAULT_TIMEOUT
+		if(params.DEBUG)
+			this.DEBUG = params.DEBUG
 	}
 
 	mongodb.MongoClient.connect(this.MONGO_URI, (err, database)=>{
@@ -100,9 +103,10 @@ const Bang = function(mongoUri,queueName,params){
 							this.cursor.jobs.remove({_id:ObjectId(_id)},(err,result)=>{
 								if(err){
 									reject(err)
+								}else{
+									this.eventList[jobFound.typeText].inProgress--
+									resolve({statut:1,deletedAt:new Date()})
 								}
-								this.eventList[jobFound.typeText].inProgress--
-								resolve({statut:1,deletedAt:new Date()})
 							})
 						}else{
 							this.eventList[jobFound.typeText].inProgress--
