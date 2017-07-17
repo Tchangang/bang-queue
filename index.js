@@ -227,7 +227,7 @@ const Bang = function(mongoUri,queueName,params){
 				if(err){
 					reject(err)
 				}
-				resolve(result)
+				resolve(result.ops[0]._id)
 			})
 		})
 	}
