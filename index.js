@@ -1,3 +1,5 @@
+'use strict'
+
 let mongodb = require('mongodb')
 let ObjectId = mongodb.ObjectID
 
