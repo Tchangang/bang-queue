@@ -223,7 +223,7 @@ const Bang = function(mongoUri,queueName,params){
 				if(err){
 					reject(err)
 				}
-				resolve({statut:1})
+				resolve(result)
 			})
 		})
 	}
