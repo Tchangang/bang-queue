@@ -320,4 +320,70 @@ const Bang = function(mongoUri,queueName,params){
 	})
 }
 
+const serialQueue = function(mongoUri,queueName){
+	if(!mongoUri || !queueName){
+		throw new Error('Please init queue properly please')
+	}
+	this.MONGO_URI = mongoUri
+	this.QUEUE_NAME = queueName
+	this.mongo = null
+	this.cursor = null
+
+	mongodb.MongoClient.connect(this.MONGO_URI, (err, database)=>{
+	  	if(err){
+	  		console.log('Error while connecting to MongoDB',err)
+	  		throw err
+	  	}else{
+	  		console.log('Mongo connected')
+	  		this.isInit = true	
+	  		this.mongo = database
+	  		this.cursor = {}
+	  		this.cursor.queues = database.collection('bang_serial_'+this.QUEUE_NAME)
+	  	}
+	})
+
+	this.hashQueueName = function(str) {
+	  	let hash = 0, i, chr;
+	  	if (str.length === 0) return hash;
+	  	for (i = 0; i < str.length; i++) {
+	    	chr   = str.charCodeAt(i);
+	    	hash  = ((hash << 5) - hash) + chr;
+	    	hash |= 0; // Convert to 32bit integer
+	  	}
+	  	return hash
+	}
+
+	this.setDelay = (key,delay)=>{
+		return new Promise((resolve, reject) => {
+			const hashKey = this.hashQueueName(key)
+			this.cursor.queues.findOne({key:hashKey},(err,item)=>{
+				if(err){
+					reject(err)
+				}
+				let lastSeen = new Date().getTime()+delay
+
+				if(item){
+					lastSeen = item.lastSeen
+					if(!lastSeen){
+						lastSeen = new Date().getTime()+delay
+					}else{
+						lastSeen = lastSeen + delay
+						if(lastSeen<new Date().getTime()){
+							lastSeen = new Date().getTime()
+						}
+					}
+				}
+				let toInsert = {key:hashKey,keyText:key,createdAt:new Date(),lastSeen}
+				this.cursor.queues.update({key:hashKey},toInsert,{upsert:true},(err,result)=>{
+					if(err){
+						reject(err)
+					}
+					resolve(lastSeen)
+				})
+			})	
+		})
+	}
+}
+
+exports.serialQueue = serialQueue
 exports.Bang = Bang
