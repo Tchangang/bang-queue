@@ -1,6 +1,6 @@
 {
   "name": "bang-queue",
-  "version": "1.3.12",
+  "version": "1.3.13",
   "description": "Queue with MongoDB designed for Nodejs",
   "main": "index.js",
   "dependencies": {
