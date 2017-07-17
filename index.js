@@ -253,7 +253,7 @@ const Bang = function(mongoUri,queueName,params){
 										reject(e)
 									})
 								}else{
-									this.setCompleteJob(data._id)
+									this.setCompleteJob(data._id,{delete:true})
 									.then((result)=>{
 										resolve({statut:1})
 									})
