@@ -5,7 +5,7 @@ let ObjectId = mongodb.ObjectID
 
 const EventEmitter = require('events')
 
-const Bang = function(mongoUri,queueName){	
+const Bang = function(mongoUri,queueName,params){	
 	this.MONGO_URI = mongoUri
 	this.QUEUE_NAME = queueName
 	this.MAX_RETRY = 5
@@ -16,6 +16,14 @@ const Bang = function(mongoUri,queueName){
 	this.cursor = null
 	this.DEFAULT_TIMEOUT = 30000
 	this.REFRESH_DELAY = 200
+
+	if(params){
+		if(params.REFRESH_DELAY)
+			this.REFRESH_DELAY = params.REFRESH_DELAY
+		if(params.DEFAULT_TIMEOUT)
+			this.DEFAULT_TIMEOUT = params.DEFAULT_TIMEOUT
+	}
+	
 	mongodb.MongoClient.connect(this.MONGO_URI, (err, database)=>{
 	  	if(err){
 	  		throw err

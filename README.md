@@ -18,8 +18,15 @@ npm install bang-queue
 
 Create a new Bang object
 
+MONGO_URI : your mongo uri connection
+QUEUE_NAME : queue name here
+params : params with two parameters : {REFRESH_DELAY:time in ms,DEFAULT_TIMEOUT:time in ms}
+
+REFRESH_DELAY : polling interval (default 200ms)
+DEFAULT_TIMEOUT : polling interval (default 50000 ms)
+
 ```
-const Bang = new Bang('your mongo uri connection','queue name here')
+const Bang = new Bang.Bang(MONGO_URI,QUEUE_NAME,params)
 ```
 
 ### Creating jobs
