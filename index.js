@@ -216,10 +216,10 @@ const Bang = function(mongoUri,queueName,params){
 		return new Promise((resolve, reject) => {
 			let toInsert = {type:this.hashQueueName(type),arguments:_arguments,typeText:type,queueName:this.QUEUE_NAME_HASH,createdAt:new Date(),state:-1,retry:0}
 			if(params.timeout){
-				toInsert.expireAt = 99999999999
+				toInsert.expireAt = 9999999999999
 				toInsert.timeout = params.timeout
 			}else{
-				toInsert.expireAt = 99999999999
+				toInsert.expireAt = 9999999999999
 				toInsert.timeout = this.DEFAULT_TIMEOUT
 			}
 			if(params.delay){
