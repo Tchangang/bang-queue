@@ -32,7 +32,7 @@ const Bang = function(mongoUri,queueName){
 	  	}
 	})	
 
-	this.getJob(_id){
+	this.getJob = (_id)=>{
 		return new Promise((resolve, reject) => {
 			if(type){
 				this.cursor.jobs.findOne({_id:ObjectId(_id)},(err,result)=>{
