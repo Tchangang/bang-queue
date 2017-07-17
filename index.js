@@ -254,6 +254,7 @@ const Bang = function(mongoUri,queueName,params){
 					.then((result)=>{
 						const done = (error)=>{
 							return new Promise((resolve, reject) => {
+								console.log('data in done function',data)
 								if(error){
 									// Ici on va remettre le job dans la queue
 									this.requeueJob(data._id)
