@@ -247,6 +247,9 @@ const Bang = function(mongoUri,queueName,params){
 			this.emitter.on(eventType,(data)=>{
 				if(this.eventList[eventType].inProgress<this.eventList[eventType].max){
 					this.eventList[eventType].inProgress++
+					console.log('*************************')
+					console.log(data)
+					console.log('*************************')
 					this.setPromoteJob(data._id)
 					.then((result)=>{
 						const done = (error)=>{
