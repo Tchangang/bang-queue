@@ -97,6 +97,7 @@ const Bang = function(mongoUri,queueName){
 								resolve({statut:1,deletedAt:new Date()})
 							})
 						}else{
+							this.eventList[jobFound.typeText].inProgress--
 							resolve({statut:1,updatedAt:new Date()})
 						}
 					})
