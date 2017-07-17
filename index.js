@@ -164,7 +164,7 @@ const Bang = function(mongoUri,queueName){
 
 	this.createJob = (type,_arguments,params)=>{
 		return new Promise((resolve, reject) => {
-			toInsert = {type:this.hashQueueName(type),arguments:_arguments,typeText:type,queueName:this.QUEUE_NAME_HASH,createdAt:new Date(),state:-1,retry:0}
+			let toInsert = {type:this.hashQueueName(type),arguments:_arguments,typeText:type,queueName:this.QUEUE_NAME_HASH,createdAt:new Date(),state:-1,retry:0}
 			if(params.timeout){
 				toInsert.expireAt = new Date().getTime()+params.timeout
 			}else{
