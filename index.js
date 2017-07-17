@@ -328,6 +328,7 @@ const serialQueue = function(mongoUri,queueName){
 	this.QUEUE_NAME = queueName
 	this.mongo = null
 	this.cursor = null
+	this.isInit = false
 
 	mongodb.MongoClient.connect(this.MONGO_URI, (err, database)=>{
 	  	if(err){
@@ -355,32 +356,36 @@ const serialQueue = function(mongoUri,queueName){
 
 	this.setDelay = (key,delay)=>{
 		return new Promise((resolve, reject) => {
-			const hashKey = this.hashQueueName(key)
-			this.cursor.queues.findOne({key:hashKey},(err,item)=>{
-				if(err){
-					reject(err)
-				}
-				let lastSeen = new Date().getTime()+delay
-
-				if(item){
-					lastSeen = item.lastSeen
-					if(!lastSeen){
-						lastSeen = new Date().getTime()+delay
-					}else{
-						lastSeen = lastSeen + delay
-						if(lastSeen<new Date().getTime()){
-							lastSeen = new Date().getTime()
-						}
-					}
-				}
-				let toInsert = {key:hashKey,keyText:key,createdAt:new Date(),lastSeen}
-				this.cursor.queues.update({key:hashKey},toInsert,{upsert:true},(err,result)=>{
+			if(this.isInit){
+				const hashKey = this.hashQueueName(key)
+				this.cursor.queues.findOne({key:hashKey},(err,item)=>{
 					if(err){
 						reject(err)
 					}
-					resolve(lastSeen)
-				})
-			})	
+					let lastSeen = new Date().getTime()+delay
+
+					if(item){
+						lastSeen = item.lastSeen
+						if(!lastSeen){
+							lastSeen = new Date().getTime()+delay
+						}else{
+							lastSeen = lastSeen + delay
+							if(lastSeen<new Date().getTime()){
+								lastSeen = new Date().getTime()
+							}
+						}
+					}
+					let toInsert = {key:hashKey,keyText:key,createdAt:new Date(),lastSeen}
+					this.cursor.queues.update({key:hashKey},toInsert,{upsert:true},(err,result)=>{
+						if(err){
+							reject(err)
+						}
+						resolve(lastSeen)
+					})
+				})	
+			}else{
+				reject(new Error('Mongo not yet init. Wait please'))
+			}
 		})
 	}
 }
