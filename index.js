@@ -140,21 +140,32 @@ const Bang = function(mongoUri,queueName,params){
 
 	this.getNextJob = (type)=>{
 		return new Promise((resolve, reject) => {
-			this.cursor.jobs.updateOne({type:this.hashQueueName(type),queueName:this.QUEUE_NAME_HASH,startAt:{$lt:new Date().getTime()},state:-1},{$set:{state:1}},{sort:{createdAt:1}},(err,result)=>{
+			this.cursor.jobs.findOneAndUpdate(
+			{type:this.hashQueueName(type),queueName:this.QUEUE_NAME_HASH,startAt:{$lt:new Date().getTime()},state:-1},
+			{$set:{state:1}}, 
+			{sort:{createdAt:1}},
+			(err,result)=>{
 				if(err){
 					reject(err)
 				}
-				if(result.result && result.result.nModified>0){
-					this.cursor.jobs.findOne({type:this.hashQueueName(type),queueName:this.QUEUE_NAME_HASH,startAt:{$lt:new Date().getTime()},state:1},{sort:{createdAt:1}},(err,result)=>{
-						if(err){
-							reject(err)
-						}
-						resolve({value:result,ok:1,key:type})
-					})
-				}else{
-					resolve({value:null,ok:1,key:type})
-				}
+				result.key = type
+				resolve(result)
 			})
+			// this.cursor.jobs.updateOne({type:this.hashQueueName(type),queueName:this.QUEUE_NAME_HASH,startAt:{$lt:new Date().getTime()},state:-1},{$set:{state:1}},{sort:{createdAt:1}},(err,result)=>{
+			// 	if(err){
+			// 		reject(err)
+			// 	}
+			// 	if(result.result && result.result.nModified>0){
+			// 		this.cursor.jobs.findOne({type:this.hashQueueName(type),queueName:this.QUEUE_NAME_HASH,startAt:{$lt:new Date().getTime()},state:1},{sort:{createdAt:1}},(err,result)=>{
+			// 			if(err){
+			// 				reject(err)
+			// 			}
+			// 			resolve({value:result,ok:1,key:type})
+			// 		})
+			// 	}else{
+			// 		resolve({value:null,ok:1,key:type})
+			// 	}
+			// })
 		})
 	}
 
