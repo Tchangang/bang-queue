@@ -250,7 +250,7 @@ const Bang = function(mongoUri,queueName,params){
 				if(this.eventList[eventType].inProgress<this.eventList[eventType].max){
 					this.eventList[eventType].inProgress++
 					console.log('*************************')
-					console.log(data)
+					console.log('Date from event',data)
 					console.log('*************************')
 					this.setPromoteJob(data._id)
 					.then((result)=>{
