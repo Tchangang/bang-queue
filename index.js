@@ -143,7 +143,7 @@ const Bang = function(mongoUri,queueName,params){
 			this.cursor.jobs.findOneAndUpdate(
 			{type:this.hashQueueName(type),queueName:this.QUEUE_NAME_HASH,startAt:{$lt:new Date().getTime()},state:-1},
 			{$set:{state:1}}, 
-			{sort:{createdAt:1}},
+			{sort:{createdAt:1},new:true},
 			(err,result)=>{
 				if(err){
 					reject(err)
