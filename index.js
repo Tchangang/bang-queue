@@ -138,7 +138,7 @@ const Bang = function(mongoUri,queueName,params){
 
 	this.getNextJob = (type)=>{
 		return new Promise((resolve, reject) => {
-			if(this.eventList[eventType].inProgress<this.eventList[eventType].max){
+			if(this.eventList[type].inProgress<this.eventList[type].max){
 				this.cursor.jobs.findOneAndUpdate(
 				{type:this.hashQueueName(type),queueName:this.QUEUE_NAME_HASH,startAt:{$lt:new Date().getTime()},state:-1},
 				{$set:{state:1}}, 
