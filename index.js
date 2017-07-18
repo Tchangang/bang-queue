@@ -30,10 +30,10 @@ const Bang = function(mongoUri,queueName,params){
 	mongodb.MongoClient.connect(this.MONGO_URI, (err, database)=>{
 	  	if(err){
 	  		throw err
-	  		console.log('ERROR')
-	  		console.log(err)
+	  		// console.log('ERROR')
+	  		// console.log(err)
 	  	}else{
-	  		console.log('connected')
+	  		// console.log('connected')
 	  		this.isInit = true	
 	  		this.mongo = database
 	  		this.cursor = {}
@@ -68,7 +68,7 @@ const Bang = function(mongoUri,queueName,params){
 						reject(err)
 					}
 					if(!result){
-						console.log('Inside promote - job not found ',_id)
+						// console.log('Inside promote - job not found ',_id)
 						reject(new Error('Job not found'))
 					}
 					const jobFound = result
@@ -87,13 +87,13 @@ const Bang = function(mongoUri,queueName,params){
 
 	this.setCompleteJob = (_id,params)=>{
 		return new Promise((resolve, reject) => {
-			console.log('Params in setCompleteJob : '+_id+' - '+params)
+			// console.log('Params in setCompleteJob : '+_id+' - '+params)
 			if(_id){
 				this.cursor.jobs.findOne({_id:ObjectId(_id)},(err,result)=>{
 					if(err){
 						reject(err)
 					}
-					console.log(result)
+					// console.log(result)
 					if(!result){
 						reject(new Error('Job not found with _id '+_id))
 					}else{
@@ -151,21 +151,6 @@ const Bang = function(mongoUri,queueName,params){
 				result.key = type
 				resolve(result)
 			})
-			// this.cursor.jobs.updateOne({type:this.hashQueueName(type),queueName:this.QUEUE_NAME_HASH,startAt:{$lt:new Date().getTime()},state:-1},{$set:{state:1}},{sort:{createdAt:1}},(err,result)=>{
-			// 	if(err){
-			// 		reject(err)
-			// 	}
-			// 	if(result.result && result.result.nModified>0){
-			// 		this.cursor.jobs.findOne({type:this.hashQueueName(type),queueName:this.QUEUE_NAME_HASH,startAt:{$lt:new Date().getTime()},state:1},{sort:{createdAt:1}},(err,result)=>{
-			// 			if(err){
-			// 				reject(err)
-			// 			}
-			// 			resolve({value:result,ok:1,key:type})
-			// 		})
-			// 	}else{
-			// 		resolve({value:null,ok:1,key:type})
-			// 	}
-			// })
 		})
 	}
 
@@ -175,16 +160,16 @@ const Bang = function(mongoUri,queueName,params){
 				if(err){
 					reject(err)
 				}
-				if(result && result.result && result.result.nModified>0){
-					console.log('New Update expire')
-				}
+				// if(result && result.result && result.result.nModified>0){
+				// 	console.log('New Update expire')
+				// }
 				this.cursor.jobs.updateMany({expireAt:{$lt:new Date().getTime()},queueName:this.QUEUE_NAME_HASH,state:1,retry:{$gt:this.MAX_RETRY}},{$set:{state:-2}},(err,result)=>{
 					if(err){
 						reject(err)
 					}
-					if(result && result.result.nModified>0){
-						console.log('New Update expire')
-					}
+					// if(result && result.result.nModified>0){
+					// 	console.log('New Update expire')
+					// }
 					resolve({statut:1,updatedExpiredJob:new Date()})
 				})
 			})
@@ -260,14 +245,14 @@ const Bang = function(mongoUri,queueName,params){
 			this.emitter.on(eventType,(data)=>{
 				if(this.eventList[eventType].inProgress<this.eventList[eventType].max){
 					this.eventList[eventType].inProgress++
-					console.log('*************************')
-					console.log('Date from event',data)
-					console.log('*************************')
+					// console.log('*************************')
+					// console.log('Date from event',data)
+					// console.log('*************************')
 					this.setPromoteJob(data._id)
 					.then((result)=>{
 						const done = (error)=>{
 							return new Promise((resolve, reject) => {
-								console.log('data in done function',data)
+								// console.log('data in done function',data)
 								if(error){
 									// Ici on va remettre le job dans la queue
 									this.requeueJob(data._id)
@@ -333,7 +318,7 @@ const Bang = function(mongoUri,queueName,params){
 				  	this.nextPoll()
 				})
 				.catch((e)=>{
-					console.log(e)
+					// console.log(e)
 					this.nextPoll()
 				})
 			}else{
@@ -357,10 +342,10 @@ const serialQueue = function(mongoUri,queueName){
 
 	mongodb.MongoClient.connect(this.MONGO_URI, (err, database)=>{
 	  	if(err){
-	  		console.log('Error while connecting to MongoDB',err)
+	  		// console.log('Error while connecting to MongoDB',err)
 	  		throw err
 	  	}else{
-	  		console.log('Mongo connected')
+	  		// console.log('Mongo connected')
 	  		this.isInit = true	
 	  		this.mongo = database
 	  		this.cursor = {}
