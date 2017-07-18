@@ -138,17 +138,21 @@ const Bang = function(mongoUri,queueName,params){
 
 	this.getNextJob = (type)=>{
 		return new Promise((resolve, reject) => {
-			this.cursor.jobs.findOneAndUpdate(
-			{type:this.hashQueueName(type),queueName:this.QUEUE_NAME_HASH,startAt:{$lt:new Date().getTime()},state:-1},
-			{$set:{state:1}}, 
-			{sort:{createdAt:1},new:true},
-			(err,result)=>{
-				if(err){
-					reject(err)
-				}
-				result.key = type
-				resolve(result)
-			})
+			if(this.eventList[eventType].inProgress<this.eventList[eventType].max){
+				this.cursor.jobs.findOneAndUpdate(
+				{type:this.hashQueueName(type),queueName:this.QUEUE_NAME_HASH,startAt:{$lt:new Date().getTime()},state:-1},
+				{$set:{state:1}}, 
+				{sort:{createdAt:1},new:true},
+				(err,result)=>{
+					if(err){
+						reject(err)
+					}
+					result.key = type
+					resolve(result)
+				})
+			}else{
+				resolve({value:null,key:type})
+			}
 		})
 	}
 
@@ -241,44 +245,40 @@ const Bang = function(mongoUri,queueName,params){
 			}
 			// Ici on sauvegarde le nombre de taches en cours
 			this.emitter.on(eventType,(data)=>{
-				if(this.eventList[eventType].inProgress<this.eventList[eventType].max){
-					this.eventList[eventType].inProgress++
-					// console.log('*************************')
-					// console.log('Date from event',data)
-					// console.log('*************************')
-					this.setPromoteJob(data._id)
-					.then((result)=>{
-						const done = (error)=>{
-							return new Promise((resolve, reject) => {
-								// console.log('data in done function',data)
-								if(error){
-									// Ici on va remettre le job dans la queue
-									this.requeueJob(data._id)
-									.then((result)=>{
-										resolve({statut:1,requeueAt:new Date().getTime()})
-									})
-									.catch((e)=>{
-										reject(e)
-									})
-								}else{
-									this.setCompleteJob(data._id,{delete:true})
-									.then((result)=>{
-										resolve({statut:1})
-									})
-									.catch((e)=>{
-										reject(e)
-									})
-								}	
-							})
-						}
-						callback(null,data,done)
-					})
-					.catch((e)=>{
-						callback(e,null,null)
-					})
-				}else{
-					callback(new Error('Queue busy for event '+eventType+' - '+this.eventList[eventType].inProgress,null,null))
-				}
+				this.eventList[eventType].inProgress++
+				// console.log('*************************')
+				// console.log('Date from event',data)
+				// console.log('*************************')
+				this.setPromoteJob(data._id)
+				.then((result)=>{
+					const done = (error)=>{
+						return new Promise((resolve, reject) => {
+							// console.log('data in done function',data)
+							if(error){
+								// Ici on va remettre le job dans la queue
+								this.requeueJob(data._id)
+								.then((result)=>{
+									resolve({statut:1,requeueAt:new Date().getTime()})
+								})
+								.catch((e)=>{
+									reject(e)
+								})
+							}else{
+								this.setCompleteJob(data._id,{delete:true})
+								.then((result)=>{
+									resolve({statut:1})
+								})
+								.catch((e)=>{
+									reject(e)
+								})
+							}	
+						})
+					}
+					callback(null,data,done)
+				})
+				.catch((e)=>{
+					callback(e,null,null)
+				})
 			})
 		}else{
 			callback(new Error('No type event found'),null,null)
