@@ -68,6 +68,7 @@ const Bang = function(mongoUri,queueName,params){
 						reject(err)
 					}
 					if(!result){
+						console.log('Inside promote - job not found ',_id)
 						reject(new Error('Job not found'))
 					}
 					const jobFound = result
@@ -94,7 +95,7 @@ const Bang = function(mongoUri,queueName,params){
 					}
 					console.log(result)
 					if(!result){
-						reject(new Error('Job not found'))
+						reject(new Error('Job not found with _id '+_id))
 					}else{
 						const jobFound = result
 						if(jobFound){
