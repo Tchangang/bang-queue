@@ -165,7 +165,7 @@ const Bang = function(mongoUri,queueName,params){
 				// if(result && result.result && result.result.nModified>0){
 				// 	console.log('New Update expire')
 				// }
-				this.cursor.jobs.updateMany({expireAt:{$lt:new Date().getTime()},queueName:this.QUEUE_NAME_HASH,state:1,retry:{$gt:this.MAX_RETRY}},{$set:{state:-2}},(err,result)=>{
+				this.cursor.jobs.updateMany({expireAt:{$lt:new Date().getTime()},queueName:this.QUEUE_NAME_HASH,state:1,retry:{$gt:this.MAX_RETRY-1}},{$set:{state:-2}},(err,result)=>{
 					if(err){
 						reject(err)
 					}
