@@ -37,9 +37,7 @@ const Bang = function(mongoUri,queueName,params){
 	  		this.isInit = true	
 	  		this.mongo = database
 	  		this.cursor = {}
-	  		this.cursor.queues = database.collection('bang_queues')
-	  		this.cursor.jobs = database.collection('bang_jobs')
-	  		this.cursor.params = database.collection('bang_running')
+	  		this.cursor.jobs = database.collection('bang_jobs_'+queueName)
 	  		// lancement de la fonction de polling
 			this.emitter.emit('bang_poll') 	
 	  	}
