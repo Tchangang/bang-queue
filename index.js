@@ -87,37 +87,65 @@ const Bang = function(mongoUri,queueName,params){
 		return new Promise((resolve, reject) => {
 			// console.log('Params in setCompleteJob : '+_id+' - '+params)
 			if(_id){
-				this.cursor.jobs.findOne({_id:ObjectId(_id)},(err,result)=>{
+				this.cursor.jobs.findOneAndUpdate(
+				{_id:ObjectId(_id),state:1},
+				{$set:{state:0,completedAt:new Date().getTime()}}, 
+				{returnOriginal:false},
+				(err,result)=>{
 					if(err){
 						reject(err)
-					}
-					// console.log(result)
-					if(!result){
-						reject(new Error('Job not found with _id '+_id))
 					}else{
-						const jobFound = result
-						if(jobFound){
-							this.cursor.jobs.update({_id:ObjectId(_id)},({$set:{state:0,completedAt:new Date().getTime()}}),(err,result)=>{
-								if(err){
-									reject(err)
-								}
-								if(params && params.delete){
-									this.cursor.jobs.remove({_id:ObjectId(_id)},(err,result)=>{
-										if(err){
-											reject(err)
-										}else{
-											this.eventList[jobFound.typeText].inProgress--
-											resolve({statut:1,deletedAt:new Date()})
-										}
-									})
-								}else{
-									this.eventList[jobFound.typeText].inProgress--
-									resolve({statut:1,updatedAt:new Date()})
-								}
-							})
+						if(result && result.value){
+							let jobFound = result.value
+							if(params && params.delete){
+								this.cursor.jobs.remove({_id:ObjectId(_id)},(err,result)=>{
+									if(err){
+										reject(err)
+									}else{
+										this.eventList[jobFound.typeText].inProgress--
+										resolve({statut:1,deletedAt:new Date()})
+									}
+								})
+							}else{
+								this.eventList[jobFound.typeText].inProgress--
+								resolve({statut:1,updatedAt:new Date()})
+							}
+						}else{
+							resolve({statut:1,updateAt:new Date(0)})
 						}
 					}
 				})
+				// this.cursor.jobs.findOne({_id:ObjectId(_id)},(err,result)=>{
+				// 	if(err){
+				// 		reject(err)
+				// 	}
+				// 	// console.log(result)
+				// 	if(!result){
+				// 		reject(new Error('Job not found with _id '+_id))
+				// 	}else{
+				// 		const jobFound = result
+				// 		if(jobFound){
+				// 			this.cursor.jobs.update({_id:ObjectId(_id)},({$set:{state:0,completedAt:new Date().getTime()}}),(err,result)=>{
+				// 				if(err){
+				// 					reject(err)
+				// 				}
+				// 				if(params && params.delete){
+				// 					this.cursor.jobs.remove({_id:ObjectId(_id)},(err,result)=>{
+				// 						if(err){
+				// 							reject(err)
+				// 						}else{
+				// 							this.eventList[jobFound.typeText].inProgress--
+				// 							resolve({statut:1,deletedAt:new Date()})
+				// 						}
+				// 					})
+				// 				}else{
+				// 					this.eventList[jobFound.typeText].inProgress--
+				// 					resolve({statut:1,updatedAt:new Date()})
+				// 				}
+				// 			})
+				// 		}
+				// 	}
+				// })
 			}else{
 				reject(new Error('Type message not defined'))
 			}
@@ -142,13 +170,17 @@ const Bang = function(mongoUri,queueName,params){
 				this.cursor.jobs.findOneAndUpdate(
 				{type:this.hashQueueName(type),queueName:this.QUEUE_NAME_HASH,startAt:{$lt:new Date().getTime()},state:-1},
 				{$set:{state:1}}, 
-				{sort:{createdAt:1},new:true},
+				{sort:{createdAt:1},returnOriginal:false},
 				(err,result)=>{
 					if(err){
 						reject(err)
+					}else{
+						if(result)
+							result.key = type
+						else
+							result = {value:null,key:type}
+						resolve(result)
 					}
-					result.key = type
-					resolve(result)
 				})
 			}else{
 				resolve({value:null,key:type})
@@ -305,7 +337,7 @@ const Bang = function(mongoUri,queueName,params){
 				Promise.all(tabPromise)
 				.then((values)=>{ 
 				  	for(let result of values){
-				  		if(result.value!=null && result.key){
+				  		if(result && result.value!=null && result.key){
 				  			const toSend = {
 				  				_id:result.value._id,
 				  				arguments:result.value.arguments
